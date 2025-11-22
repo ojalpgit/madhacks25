@@ -1,0 +1,41 @@
+{
+  "expo": {
+    "name": "Bitcoin Payment App",
+    "slug": "bitcoin-payment-app",
+    "version": "1.0.0",
+    "orientation": "portrait",
+    "userInterfaceStyle": "light",
+    "splash": {
+      "resizeMode": "contain",
+      "backgroundColor": "#1A1F71"
+    },
+    "assetBundlePatterns": [
+      "**/*"
+    ],
+    "ios": {
+      "supportsTablet": true,
+      "bundleIdentifier": "com.bitcoinpayment.app",
+      "infoPlist": {
+        "NSCameraUsageDescription": "This app needs access to your camera to scan QR codes for Bitcoin payments."
+      }
+    },
+    "android": {
+      "adaptiveIcon": {
+        "backgroundColor": "#1A1F71"
+      },
+      "permissions": [
+        "CAMERA"
+      ],
+      "package": "com.bitcoinpayment.app"
+    },
+    "plugins": [
+      [
+        "expo-camera",
+        {
+          "cameraPermission": "Allow Bitcoin Payment App to access your camera to scan QR codes."
+        }
+      ]
+    ]
+  }
+}
+

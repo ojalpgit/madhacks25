@@ -1,0 +1,29 @@
+node_modules/
+.expo/
+.expo-shared/
+npm-debug.log
+yarn-error.log
+*.pem
+*.p12
+*.key
+*.mobileprovision
+*.orig.*
+web-build/
+dist/
+.DS_Store
+
+# OSX
+.DS_Store
+
+# IDE
+.vscode/
+.idea/
+*.swp
+*.swo
+*~
+
+# Environment
+.env
+.env.local
+.env.*.local
+
