@@ -80,12 +80,45 @@ const TransactionDetailScreen = () => {
         {/* Details Card */}
         <View style={styles.card}>
           <View style={styles.detailRow}>
-            <Text style={styles.detailLabel}>Merchant</Text>
+            <Text style={styles.detailLabel}>Vendor</Text>
             <Text style={styles.detailValue}>{transaction.merchant}</Text>
           </View>
+          {transaction.vendorId && (
+            <>
+              <View style={styles.divider} />
+              <View style={styles.detailRow}>
+                <Text style={styles.detailLabel}>Vendor ID</Text>
+                <Text style={[styles.detailValue, styles.transactionId]}>
+                  {transaction.vendorId}
+                </Text>
+              </View>
+            </>
+          )}
+          {transaction.orderId && (
+            <>
+              <View style={styles.divider} />
+              <View style={styles.detailRow}>
+                <Text style={styles.detailLabel}>Order ID</Text>
+                <Text style={[styles.detailValue, styles.transactionId]}>
+                  {transaction.orderId}
+                </Text>
+              </View>
+            </>
+          )}
+          {transaction.message && (
+            <>
+              <View style={styles.divider} />
+              <View style={styles.detailRow}>
+                <Text style={styles.detailLabel}>Message</Text>
+                <Text style={[styles.detailValue, styles.messageText]}>
+                  {transaction.message}
+                </Text>
+              </View>
+            </>
+          )}
           <View style={styles.divider} />
           <View style={styles.detailRow}>
-            <Text style={styles.detailLabel}>Date</Text>
+            <Text style={styles.detailLabel}>Transaction Time</Text>
             <Text style={styles.detailValue}>{formatDate(transaction.date)}</Text>
           </View>
           <View style={styles.divider} />
@@ -95,6 +128,17 @@ const TransactionDetailScreen = () => {
               {transaction.type}
             </Text>
           </View>
+          {transaction.totalSbtc && (
+            <>
+              <View style={styles.divider} />
+              <View style={styles.detailRow}>
+                <Text style={styles.detailLabel}>Total SBTC</Text>
+                <Text style={styles.detailValue}>
+                  {transaction.totalSbtc.toLocaleString()} SBTC
+                </Text>
+              </View>
+            </>
+          )}
           <View style={styles.divider} />
           <View style={styles.detailRow}>
             <Text style={styles.detailLabel}>Transaction ID</Text>
@@ -107,14 +151,35 @@ const TransactionDetailScreen = () => {
         {/* Items Card */}
         {transaction.items && transaction.items.length > 0 && (
           <View style={styles.card}>
-            <Text style={styles.cardTitle}>Items Purchased</Text>
+            <Text style={styles.cardTitle}>Order Items</Text>
             {transaction.items.map((item, index) => (
               <View key={index}>
                 <View style={styles.itemRow}>
                   <View style={styles.itemInfo}>
                     <Text style={styles.itemName}>{item.name}</Text>
-                    <Text style={styles.itemPrice}>
-                      {formatBTC(item.price)} ({formatUSD(item.priceUSD)})
+                    <View style={styles.itemDetails}>
+                      <Text style={styles.itemQuantity}>
+                        Quantity: {item.quantity || 1}
+                      </Text>
+                      {item.priceBtc && (
+                        <Text style={styles.itemUnitPrice}>
+                          Unit: {formatBTC(item.priceBtc)}
+                          {item.priceSbtc !== undefined && ` (${item.priceSbtc.toLocaleString()} SBTC)`}
+                        </Text>
+                      )}
+                    </View>
+                  </View>
+                  <View style={styles.itemPriceContainer}>
+                    <Text style={styles.itemSubtotal}>
+                      {formatBTC(item.subtotalBtc || 0)}
+                    </Text>
+                    {item.subtotalSbtc !== undefined && (
+                      <Text style={styles.itemSubtotalSbtc}>
+                        {item.subtotalSbtc.toLocaleString()} SBTC
+                      </Text>
+                    )}
+                    <Text style={styles.itemPriceUSD}>
+                      {formatUSD(item.priceUSD || (item.subtotalBtc || 0) * 25000)}
                     </Text>
                   </View>
                 </View>
@@ -124,10 +189,22 @@ const TransactionDetailScreen = () => {
             <View style={styles.totalContainer}>
               <View style={styles.divider} />
               <View style={styles.totalRow}>
-                <Text style={styles.totalLabel}>Total</Text>
-                <Text style={styles.totalValue}>
-                  {formatBTC(transaction.amount)} ({formatUSD(transaction.amountUSD)})
-                </Text>
+                <View>
+                  <Text style={styles.totalLabel}>Total</Text>
+                  {transaction.totalSbtc && (
+                    <Text style={styles.totalSbtcLabel}>
+                      {transaction.totalSbtc.toLocaleString()} SBTC
+                    </Text>
+                  )}
+                </View>
+                <View style={styles.totalAmountContainer}>
+                  <Text style={styles.totalValue}>
+                    {formatBTC(transaction.amount)}
+                  </Text>
+                  <Text style={styles.totalUSD}>
+                    {formatUSD(transaction.amountUSD)}
+                  </Text>
+                </View>
               </View>
             </View>
           </View>
@@ -267,24 +344,59 @@ const styles = StyleSheet.create({
     fontFamily: 'monospace',
     fontSize: 12,
   },
+  messageText: {
+    fontStyle: 'italic',
+    color: colors.textLight,
+  },
   divider: {
     height: 1,
     backgroundColor: colors.border,
   },
   itemRow: {
+    flexDirection: 'row',
+    justifyContent: 'space-between',
     paddingVertical: 12,
   },
   itemInfo: {
     flex: 1,
+    marginRight: 12,
   },
   itemName: {
     fontSize: 16,
     fontWeight: '600',
     color: colors.text,
-    marginBottom: 4,
+    marginBottom: 6,
   },
-  itemPrice: {
-    fontSize: 14,
+  itemDetails: {
+    marginTop: 4,
+  },
+  itemQuantity: {
+    fontSize: 13,
+    color: colors.textLight,
+    marginBottom: 2,
+  },
+  itemUnitPrice: {
+    fontSize: 12,
+    color: colors.textLight,
+    fontFamily: 'monospace',
+  },
+  itemPriceContainer: {
+    alignItems: 'flex-end',
+  },
+  itemSubtotal: {
+    fontSize: 16,
+    fontWeight: 'bold',
+    color: colors.primary,
+    marginBottom: 2,
+  },
+  itemSubtotalSbtc: {
+    fontSize: 12,
+    color: colors.textLight,
+    fontFamily: 'monospace',
+    marginBottom: 2,
+  },
+  itemPriceUSD: {
+    fontSize: 12,
     color: colors.textLight,
   },
   totalContainer: {
@@ -301,10 +413,24 @@ const styles = StyleSheet.create({
     fontWeight: 'bold',
     color: colors.text,
   },
+  totalSbtcLabel: {
+    fontSize: 14,
+    color: colors.textLight,
+    marginTop: 4,
+    fontFamily: 'monospace',
+  },
+  totalAmountContainer: {
+    alignItems: 'flex-end',
+  },
   totalValue: {
-    fontSize: 18,
+    fontSize: 20,
     fontWeight: 'bold',
     color: colors.primary,
+    marginBottom: 4,
+  },
+  totalUSD: {
+    fontSize: 16,
+    color: colors.textLight,
   },
   actionsContainer: {
     paddingHorizontal: 20,

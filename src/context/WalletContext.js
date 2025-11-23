@@ -26,26 +26,62 @@ export const WalletProvider = ({ children }) => {
     }
   };
 
-  const processPayment = (merchant, amount, items = []) => {
-    // Use provided items or create a default item
-    const transactionItems = items.length > 0
-      ? items.map((item) => ({
-          name: item.name || 'Item',
-          price: item.price || 0,
-          priceUSD: (item.price || 0) * 25000,
-        }))
-      : [{ name: 'Payment', price: amount, priceUSD: amount * 25000 }];
+  const processPayment = (orderData) => {
+    // Extract data from orderData object (from QR code)
+    // Format: {"vendorId":"...","vendorName":"...","orderId":"...","totalBTC":...,"totalSbtc":...,"items":[...],"generatedAt":"...","message":"..."}
+    const vendorId = orderData.vendorId || '';
+    const vendorName = orderData.vendorName || orderData.merchant || 'Merchant';
+    const orderId = orderData.orderId || '';
+    const totalBTC = orderData.totalBTC || orderData.amount || 0;
+    const totalSBTC = orderData.totalSbtc || 0;
+    const message = orderData.message || '';
+    const generatedAt = orderData.generatedAt || new Date().toISOString();
+    
+    // Process items with all details from JSON format
+    // Items format: [{"name":"...","quantity":...,"priceBtc":...,"priceSbtc":...,"subtotalBtc":...}]
+    const transactionItems = (orderData.items || []).map((item) => {
+      const quantity = item.quantity || 1;
+      const priceBtc = item.priceBtc || 0;
+      const priceSbtc = item.priceSbtc || 0;
+      // Use subtotalBtc from JSON if available, otherwise calculate
+      const subtotalBtc = item.subtotalBtc !== undefined ? item.subtotalBtc : (priceBtc * quantity);
+      const subtotalSbtc = (priceSbtc * quantity);
+      
+      return {
+        name: item.name || 'Item',
+        quantity: quantity,
+        priceBtc: priceBtc,
+        priceSbtc: priceSbtc,
+        subtotalBtc: subtotalBtc,
+        subtotalSbtc: subtotalSbtc,
+        priceUSD: subtotalBtc * 25000,
+      };
+    });
 
     const newTransaction = {
       id: Date.now().toString(),
       type: 'sent',
-      merchant,
-      amount,
-      amountUSD: amount * 25000,
-      date: new Date().toISOString(),
+      merchant: vendorName,
+      vendorId: vendorId,
+      orderId: orderId,
+      amount: totalBTC,
+      amountUSD: totalBTC * 25000,
+      totalSbtc: totalSBTC,
+      date: generatedAt,
+      message: message,
       status: 'confirmed',
       confirmations: 0,
-      items: transactionItems,
+      items: transactionItems.length > 0 ? transactionItems : [
+        { 
+          name: 'Payment', 
+          quantity: 1,
+          priceBtc: totalBTC,
+          priceSbtc: totalSBTC,
+          subtotalBtc: totalBTC,
+          subtotalSbtc: totalSBTC,
+          priceUSD: totalBTC * 25000 
+        }
+      ],
     };
     addTransaction(newTransaction);
     return newTransaction;

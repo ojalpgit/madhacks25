@@ -34,9 +34,17 @@ const TransactionCard = ({ transaction, onPress }) => {
       </View>
       {transaction.items && transaction.items.length > 0 && (
         <View style={styles.itemsContainer}>
-          <Text style={styles.itemsLabel}>
-            {transaction.items.length} item{transaction.items.length > 1 ? 's' : ''}
-          </Text>
+          <View style={styles.itemsRow}>
+            <MaterialIcons name="shopping-cart" size={14} color={colors.textLight} />
+            <Text style={styles.itemsLabel}>
+              {transaction.items.length} item{transaction.items.length > 1 ? 's' : ''}
+              {transaction.items.reduce((sum, item) => sum + (item.quantity || 1), 0) > transaction.items.length && (
+                <Text style={styles.quantityLabel}>
+                  {' '}({transaction.items.reduce((sum, item) => sum + (item.quantity || 1), 0)} total)
+                </Text>
+              )}
+            </Text>
+          </View>
         </View>
       )}
       <View style={styles.statusContainer}>
@@ -108,9 +116,19 @@ const styles = StyleSheet.create({
     borderTopWidth: 1,
     borderTopColor: colors.border,
   },
+  itemsRow: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 6,
+  },
   itemsLabel: {
     fontSize: 12,
     color: colors.textLight,
+  },
+  quantityLabel: {
+    fontSize: 11,
+    color: colors.textLight,
+    fontStyle: 'italic',
   },
   statusContainer: {
     marginTop: 8,

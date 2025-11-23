@@ -33,7 +33,7 @@ const formatDateTime = (isoString) => {
 
 const ScanScreen = () => {
   const navigation = useNavigation();
-  const { processPayment } = useWallet();
+  const { wallet, processPayment } = useWallet();
   const [permission, requestPermission] = useCameraPermissions();
   const [scanned, setScanned] = useState(false);
   const [showConfirmModal, setShowConfirmModal] = useState(false);
@@ -60,12 +60,40 @@ const ScanScreen = () => {
   const handleConfirm = () => {
     if (!orderData) return;
 
+    // Check if user has sufficient balance
+    const totalBTC = orderData.totalBTC || 0;
+    const currentBalance = wallet.balance || 0;
+
+    if (totalBTC > currentBalance) {
+      const shortfall = totalBTC - currentBalance;
+      Alert.alert(
+        'Insufficient Balance',
+        `You don't have enough Bitcoin to complete this payment.\n\n` +
+        `Required: ${formatBTC(totalBTC)}\n` +
+        `Available: ${formatBTC(currentBalance)}\n` +
+        `Shortfall: ${formatBTC(shortfall)}\n\n` +
+        `Please add more funds to your wallet.`,
+        [
+          {
+            text: 'OK',
+            onPress: () => {
+              setShowConfirmModal(false);
+              setScanned(false);
+              setOrderData(null);
+            },
+          },
+        ]
+      );
+      return;
+    }
+
     setProcessing(true);
     setShowConfirmModal(false);
 
     setTimeout(() => {
       try {
-        processPayment(orderData.vendorName || 'Merchant', orderData.totalBTC);
+        // Pass full orderData to processPayment
+        processPayment(orderData);
         setProcessing(false);
         setShowSuccess(true);
         setTimeout(() => {
@@ -153,26 +181,42 @@ const ScanScreen = () => {
               )}
             </View>
 
+            {/* Balance Check Warning */}
+            {orderData?.totalBTC && wallet.balance < orderData.totalBTC && (
+              <View style={styles.balanceWarning}>
+                <MaterialIcons name="warning" size={20} color="#ff9900" />
+                <Text style={styles.balanceWarningText}>
+                  Insufficient balance! You need {formatBTC(orderData.totalBTC - wallet.balance)} more.
+                </Text>
+              </View>
+            )}
+
             <ScrollView showsVerticalScrollIndicator={false} style={{ maxHeight: '58%' }}>
               {/* Items */}
               <View style={styles.itemsCard}>
                 <Text style={styles.sectionTitle}>Order Items</Text>
-                {orderData?.items?.map((item, i) => (
-                  <View key={i} style={styles.itemRow}>
-                    <View style={styles.itemInfo}>
-                      <Text style={styles.itemName}>{item.name}</Text>
-                      <Text style={styles.quantity}>× {item.quantity}</Text>
+                {orderData?.items?.map((item, i) => {
+                  const quantity = item.quantity || 1;
+                  const subtotalBtc = item.subtotalBtc !== undefined ? item.subtotalBtc : (item.priceBtc || 0) * quantity;
+                  const subtotalSbtc = (item.priceSbtc || 0) * quantity;
+                  
+                  return (
+                    <View key={i} style={styles.itemRow}>
+                      <View style={styles.itemInfo}>
+                        <Text style={styles.itemName}>{item.name}</Text>
+                        <Text style={styles.quantity}>× {quantity}</Text>
+                      </View>
+                      <View style={styles.itemPrice}>
+                        <Text style={styles.priceBTC}>
+                          {formatBTC(subtotalBtc)}
+                        </Text>
+                        <Text style={styles.priceSBTC}>
+                          {subtotalSbtc.toLocaleString()} SBTC
+                        </Text>
+                      </View>
                     </View>
-                    <View style={styles.itemPrice}>
-                      <Text style={styles.priceBTC}>
-                        {formatBTC(item.subtotalBtc || item.priceBtc * item.quantity)}
-                      </Text>
-                      <Text style={styles.priceSBTC}>
-                        {(item.priceSbtc * item.quantity).toLocaleString()} SBTC
-                      </Text>
-                    </View>
-                  </View>
-                ))}
+                  );
+                })}
               </View>
 
               {/* Total */}
@@ -185,12 +229,27 @@ const ScanScreen = () => {
               </View>
             </ScrollView>
 
+            {/* Current Balance Display */}
+            <View style={styles.balanceInfo}>
+              <Text style={styles.balanceLabel}>Your Balance:</Text>
+              <Text style={styles.balanceAmount}>{formatBTC(wallet.balance || 0)}</Text>
+            </View>
+
             <View style={styles.buttonRow}>
               <TouchableOpacity style={styles.cancelBtn} onPress={handleCancel}>
                 <Text style={styles.cancelText}>Cancel</Text>
               </TouchableOpacity>
-              <TouchableOpacity style={styles.payBtn} onPress={handleConfirm}>
-                <Text style={styles.payText}>Pay Now</Text>
+              <TouchableOpacity 
+                style={[
+                  styles.payBtn, 
+                  orderData?.totalBTC && wallet.balance < orderData.totalBTC && styles.payBtnDisabled
+                ]} 
+                onPress={handleConfirm}
+                disabled={orderData?.totalBTC && wallet.balance < orderData.totalBTC}
+              >
+                <Text style={styles.payText}>
+                  {orderData?.totalBTC && wallet.balance < orderData.totalBTC ? 'Insufficient Funds' : 'Pay Now'}
+                </Text>
               </TouchableOpacity>
             </View>
           </View>
@@ -263,9 +322,48 @@ const styles = StyleSheet.create({
   totalBTC: { fontSize: 40, fontWeight: 'bold', color: '#00ff00' },
   totalSBTC: { fontSize: 20, color: '#00cc00', marginTop: 4 },
 
-  buttonRow: { flexDirection: 'row', gap: 16, marginTop: 24 },
+  balanceWarning: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    backgroundColor: '#332200',
+    borderWidth: 2,
+    borderColor: '#ff9900',
+    padding: 12,
+    borderRadius: 12,
+    marginBottom: 16,
+    gap: 8,
+  },
+  balanceWarningText: {
+    flex: 1,
+    color: '#ff9900',
+    fontSize: 13,
+    fontWeight: '600',
+  },
+  balanceInfo: {
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+    alignItems: 'center',
+    backgroundColor: '#1a1a1a',
+    padding: 14,
+    borderRadius: 12,
+    marginTop: 16,
+    marginBottom: 12,
+  },
+  balanceLabel: {
+    color: '#aaa',
+    fontSize: 14,
+    fontWeight: '500',
+  },
+  balanceAmount: {
+    color: '#00ff00',
+    fontSize: 16,
+    fontWeight: 'bold',
+    fontFamily: 'monospace',
+  },
+  buttonRow: { flexDirection: 'row', gap: 16, marginTop: 12 },
   cancelBtn: { flex: 1, backgroundColor: '#444', padding: 18, borderRadius: 16, alignItems: 'center' },
   payBtn: { flex: 1, backgroundColor: '#00aa00', padding: 18, borderRadius: 16, alignItems: 'center' },
+  payBtnDisabled: { backgroundColor: '#333', opacity: 0.6 },
   cancelText: { color: '#fff', fontWeight: 'bold', fontSize: 16 },
   payText: { color: '#fff', fontWeight: 'bold', fontSize: 18 },
 
