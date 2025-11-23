@@ -16,6 +16,7 @@ import * as Animatable from 'react-native-animatable';
 import { useNavigation } from '@react-navigation/native';
 import { useWallet } from '../context/WalletContext';
 import { formatBTC } from '../utils/wallet';
+import { colors } from '../utils/colors';
 
 // Helper: Format ISO date → "22 Nov 2025, 23:34"
 const formatDateTime = (isoString) => {
@@ -119,8 +120,8 @@ const ScanScreen = () => {
 
   if (!permission?.granted) {
     return (
-      <View style={styles.container}>
-        <MaterialIcons name="camera-alt" size={80} color="#666" />
+      <View style={styles.permissionContainer}>
+        <MaterialIcons name="camera-alt" size={80} color={colors.textLight} />
         <Text style={styles.title}>Camera Access Required</Text>
         <Text style={styles.subtitle}>Allow camera to scan QR codes</Text>
         <TouchableOpacity style={styles.permissionBtn} onPress={requestPermission}>
@@ -184,7 +185,7 @@ const ScanScreen = () => {
             {/* Balance Check Warning */}
             {orderData?.totalBTC && wallet.balance < orderData.totalBTC && (
               <View style={styles.balanceWarning}>
-                <MaterialIcons name="warning" size={20} color="#ff9900" />
+                <MaterialIcons name="warning" size={20} color={colors.accent} />
                 <Text style={styles.balanceWarningText}>
                   Insufficient balance! You need {formatBTC(orderData.totalBTC - wallet.balance)} more.
                 </Text>
@@ -260,7 +261,7 @@ const ScanScreen = () => {
       <Modal visible={processing} transparent>
         <View style={styles.modalOverlay}>
           <View style={styles.processingBox}>
-            <ActivityIndicator size="large" color="#00ff00" />
+            <ActivityIndicator size="large" color={colors.accent} />
             <Text style={styles.processingText}>Processing Payment...</Text>
           </View>
         </View>
@@ -269,7 +270,7 @@ const ScanScreen = () => {
       <Modal visible={showSuccess} transparent>
         <View style={styles.modalOverlay}>
           <Animatable.View animation="zoomIn" duration={600} style={styles.successBox}>
-            <MaterialIcons name="check-circle" size={100} color="#00ff00" />
+            <MaterialIcons name="check-circle" size={100} color={colors.success} />
             <Text style={styles.successTitle}>Payment Sent!</Text>
             <Text style={styles.successSubtitle}>Thank you for your purchase</Text>
           </Animatable.View>
@@ -287,7 +288,7 @@ const styles = StyleSheet.create({
   overlayMiddle: { flexDirection: 'row', height: 320 },
   overlaySide: { flex: 1, backgroundColor: 'rgba(0,0,0,0.6)' },
   scanArea: { width: 320, height: 320, position: 'relative' },
-  corner: { position: 'absolute', width: 60, height: 60, borderColor: '#00ff00', borderWidth: 6 },
+  corner: { position: 'absolute', width: 60, height: 60, borderColor: colors.accent, borderWidth: 6 },
   topLeft: { top: 0, left: 0, borderRightWidth: 0, borderBottomWidth: 0 },
   topRight: { top: 0, right: 0, borderLeftWidth: 0, borderBottomWidth: 0 },
   bottomLeft: { bottom: 0, left: 0, borderRightWidth: 0, borderTopWidth: 0 },
@@ -297,37 +298,37 @@ const styles = StyleSheet.create({
   instructions: { position: 'absolute', bottom: 120, left: 0, right: 0, alignItems: 'center' },
   instructionText: { color: '#fff', fontSize: 18, fontWeight: '600', backgroundColor: 'rgba(0,0,0,0.7)', paddingHorizontal: 24, paddingVertical: 12, borderRadius: 30 },
 
-  modalOverlay: { flex: 1, backgroundColor: 'rgba(0,0,0,0.96)', justifyContent: 'center', alignItems: 'center', padding: 20 },
-  modalContent: { backgroundColor: '#111', borderRadius: 24, padding: 24, width: '100%', maxHeight: '90%' },
-  modalTitle: { fontSize: 28, fontWeight: 'bold', color: '#00ff00', textAlign: 'center', marginBottom: 16 },
+  modalOverlay: { flex: 1, backgroundColor: 'rgba(0,0,0,0.8)', justifyContent: 'center', alignItems: 'center', padding: 20 },
+  modalContent: { backgroundColor: colors.secondary, borderRadius: 24, padding: 24, width: '100%', maxHeight: '90%', shadowColor: colors.shadow, shadowOffset: { width: 0, height: 4 }, shadowOpacity: 0.3, shadowRadius: 12, elevation: 10 },
+  modalTitle: { fontSize: 28, fontWeight: 'bold', color: colors.primary, textAlign: 'center', marginBottom: 16 },
 
-  vendorCard: { backgroundColor: '#1a1a1a', padding: 20, borderRadius: 16, alignItems: 'center', marginBottom: 20 },
-  vendorName: { fontSize: 26, fontWeight: 'bold', color: '#00ff00' },
-  message: { fontSize: 15, color: '#aaa', marginTop: 6, fontStyle: 'italic' },
-  timestamp: { fontSize: 13, color: '#00cc00', marginTop: 10, fontWeight: '600' },
+  vendorCard: { backgroundColor: colors.background, padding: 20, borderRadius: 16, alignItems: 'center', marginBottom: 20, borderWidth: 1, borderColor: colors.border },
+  vendorName: { fontSize: 26, fontWeight: 'bold', color: colors.primary },
+  message: { fontSize: 15, color: colors.textLight, marginTop: 6, fontStyle: 'italic' },
+  timestamp: { fontSize: 13, color: colors.accent, marginTop: 10, fontWeight: '600' },
 
-  itemsCard: { backgroundColor: '#1a1a1a', padding: 16, borderRadius: 16, marginBottom: 16 },
-  sectionTitle: { color: '#00ff00', fontSize: 17, fontWeight: 'bold', marginBottom: 12 },
+  itemsCard: { backgroundColor: colors.background, padding: 16, borderRadius: 16, marginBottom: 16, borderWidth: 1, borderColor: colors.border },
+  sectionTitle: { color: colors.primary, fontSize: 17, fontWeight: 'bold', marginBottom: 12 },
 
-  itemRow: { flexDirection: 'row', justifyContent: 'space-between', marginBottom: 16, paddingBottom: 12, borderBottomWidth: 1, borderColor: '#333' },
+  itemRow: { flexDirection: 'row', justifyContent: 'space-between', marginBottom: 16, paddingBottom: 12, borderBottomWidth: 1, borderColor: colors.border },
   itemInfo: { flex: 1 },
-  itemName: { color: '#fff', fontSize: 16, fontWeight: '600' },
-  quantity: { color: '#0f0', fontSize: 14, marginTop: 4 },
+  itemName: { color: colors.text, fontSize: 16, fontWeight: '600' },
+  quantity: { color: colors.accent, fontSize: 14, marginTop: 4 },
   itemPrice: { alignItems: 'flex-end' },
-  priceBTC: { color: '#00ff00', fontWeight: 'bold', fontSize: 16 },
-  priceSBTC: { color: '#aaa', fontSize: 13 },
+  priceBTC: { color: colors.primary, fontWeight: 'bold', fontSize: 16 },
+  priceSBTC: { color: colors.textLight, fontSize: 13 },
 
-  totalCard: { backgroundColor: '#002200', padding: 24, borderRadius: 16, borderWidth: 2, borderColor: '#00ff00', alignItems: 'center' },
-  totalLabel: { color: '#00ff00', fontSize: 20, fontWeight: 'bold', marginBottom: 8 },
-  totalBTC: { fontSize: 40, fontWeight: 'bold', color: '#00ff00' },
-  totalSBTC: { fontSize: 20, color: '#00cc00', marginTop: 4 },
+  totalCard: { backgroundColor: colors.background, padding: 24, borderRadius: 16, borderWidth: 2, borderColor: colors.accent, alignItems: 'center' },
+  totalLabel: { color: colors.primary, fontSize: 20, fontWeight: 'bold', marginBottom: 8 },
+  totalBTC: { fontSize: 40, fontWeight: 'bold', color: colors.accent },
+  totalSBTC: { fontSize: 20, color: colors.textLight, marginTop: 4 },
 
   balanceWarning: {
     flexDirection: 'row',
     alignItems: 'center',
-    backgroundColor: '#332200',
+    backgroundColor: colors.background,
     borderWidth: 2,
-    borderColor: '#ff9900',
+    borderColor: colors.accent,
     padding: 12,
     borderRadius: 12,
     marginBottom: 16,
@@ -335,7 +336,7 @@ const styles = StyleSheet.create({
   },
   balanceWarningText: {
     flex: 1,
-    color: '#ff9900',
+    color: colors.accent,
     fontSize: 13,
     fontWeight: '600',
   },
@@ -343,40 +344,43 @@ const styles = StyleSheet.create({
     flexDirection: 'row',
     justifyContent: 'space-between',
     alignItems: 'center',
-    backgroundColor: '#1a1a1a',
+    backgroundColor: colors.background,
     padding: 14,
     borderRadius: 12,
     marginTop: 16,
     marginBottom: 12,
+    borderWidth: 1,
+    borderColor: colors.border,
   },
   balanceLabel: {
-    color: '#aaa',
+    color: colors.textLight,
     fontSize: 14,
     fontWeight: '500',
   },
   balanceAmount: {
-    color: '#00ff00',
+    color: colors.primary,
     fontSize: 16,
     fontWeight: 'bold',
     fontFamily: 'monospace',
   },
   buttonRow: { flexDirection: 'row', gap: 16, marginTop: 12 },
-  cancelBtn: { flex: 1, backgroundColor: '#444', padding: 18, borderRadius: 16, alignItems: 'center' },
-  payBtn: { flex: 1, backgroundColor: '#00aa00', padding: 18, borderRadius: 16, alignItems: 'center' },
-  payBtnDisabled: { backgroundColor: '#333', opacity: 0.6 },
-  cancelText: { color: '#fff', fontWeight: 'bold', fontSize: 16 },
-  payText: { color: '#fff', fontWeight: 'bold', fontSize: 18 },
+  cancelBtn: { flex: 1, backgroundColor: colors.error, padding: 18, borderRadius: 16, alignItems: 'center', shadowColor: colors.shadow, shadowOffset: { width: 0, height: 2 }, shadowOpacity: 0.2, shadowRadius: 4, elevation: 3 },
+  payBtn: { flex: 1, backgroundColor: colors.accent, padding: 18, borderRadius: 16, alignItems: 'center', shadowColor: colors.shadow, shadowOffset: { width: 0, height: 2 }, shadowOpacity: 0.3, shadowRadius: 4, elevation: 3 },
+  payBtnDisabled: { backgroundColor: colors.border, opacity: 0.6 },
+  cancelText: { color: colors.secondary, fontWeight: 'bold', fontSize: 16 },
+  payText: { color: colors.secondary, fontWeight: 'bold', fontSize: 18 },
 
-  processingBox: { backgroundColor: '#111', padding: 40, borderRadius: 20, alignItems: 'center' },
-  processingText: { marginTop: 20, color: '#fff', fontSize: 18 },
-  successBox: { backgroundColor: '#111', padding: 50, borderRadius: 30, alignItems: 'center', borderWidth: 3, borderColor: '#00ff00' },
-  successTitle: { marginTop: 20, fontSize: 28, fontWeight: 'bold', color: '#00ff00' },
-  successSubtitle: { marginTop: 8, fontSize: 16, color: '#aaa' },
+  processingBox: { backgroundColor: colors.secondary, padding: 40, borderRadius: 20, alignItems: 'center', shadowColor: colors.shadow, shadowOffset: { width: 0, height: 4 }, shadowOpacity: 0.3, shadowRadius: 12, elevation: 10 },
+  processingText: { marginTop: 20, color: colors.text, fontSize: 18, fontWeight: '600' },
+  successBox: { backgroundColor: colors.secondary, padding: 50, borderRadius: 30, alignItems: 'center', borderWidth: 3, borderColor: colors.accent, shadowColor: colors.shadow, shadowOffset: { width: 0, height: 4 }, shadowOpacity: 0.3, shadowRadius: 12, elevation: 10 },
+  successTitle: { marginTop: 20, fontSize: 28, fontWeight: 'bold', color: colors.accent },
+  successSubtitle: { marginTop: 8, fontSize: 16, color: colors.textLight },
 
-  title: { fontSize: 24, fontWeight: 'bold', color: '#fff', marginTop: 20 },
-  subtitle: { fontSize: 16, color: '#aaa', marginTop: 10, textAlign: 'center', paddingHorizontal: 40 },
-  permissionBtn: { marginTop: 30, backgroundColor: '#00aa00', paddingHorizontal: 32, paddingVertical: 16, borderRadius: 30 },
-  permissionText: { color: '#fff', fontWeight: 'bold', fontSize: 16 },
+  permissionContainer: { flex: 1, backgroundColor: colors.background, justifyContent: 'center', alignItems: 'center', padding: 20 },
+  title: { fontSize: 24, fontWeight: 'bold', color: colors.text, marginTop: 20 },
+  subtitle: { fontSize: 16, color: colors.textLight, marginTop: 10, textAlign: 'center', paddingHorizontal: 40 },
+  permissionBtn: { marginTop: 30, backgroundColor: colors.accent, paddingHorizontal: 32, paddingVertical: 16, borderRadius: 30, shadowColor: colors.shadow, shadowOffset: { width: 0, height: 2 }, shadowOpacity: 0.3, shadowRadius: 4, elevation: 3 },
+  permissionText: { color: colors.secondary, fontWeight: 'bold', fontSize: 16 },
 });
 
 export default ScanScreen;
